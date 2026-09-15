@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Future Designers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --blue:#1565c0;--blue-dark:#0d4d9e;--blue-light:#38a8e8;
+      --ink:#152238;--muted:#687385;--line:#e7ecf2;--soft:#f4f7fb;--nav:#fff;
+      --radius-sm:8px;--radius-md:14px;--radius-lg:20px;
+      --shadow-sm:0 1px 3px rgba(15,40,90,.08), 0 1px 2px rgba(15,40,90,.06);
+      --shadow-md:0 8px 20px rgba(15,40,90,.10);
+      --shadow-lg:0 20px 45px rgba(6,23,46,.28);
+      --btn-shadow:0 4px 0 #0d4d9e, 0 6px 14px rgba(21,101,192,.35);
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:'Inter',Arial,sans-serif;color:var(--ink);background:var(--soft);-webkit-font-smoothing:antialiased} button,input,select{font:inherit}
+
+    /* ---------- Buttons: consistent "3D" press effect everywhere ---------- */
+    .primary{border:0;border-radius:10px;background:linear-gradient(180deg,#1b74d4,var(--blue));color:#fff;padding:11px 18px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;justify-content:center;box-shadow:var(--btn-shadow);transform:translateY(0);transition:transform .12s ease, box-shadow .12s ease, background .15s ease}
+    .primary:hover{background:linear-gradient(180deg,#2680e0,#1668c4);transform:translateY(-2px);box-shadow:0 6px 0 #0d4d9e, 0 12px 20px rgba(21,101,192,.4)}
+    .primary:active{transform:translateY(1px);box-shadow:0 2px 0 #0d4d9e, 0 3px 8px rgba(21,101,192,.35)}
+    .primary.secondary{background:#eaf2fb;color:#1565c0;box-shadow:0 4px 0 #cfe2f6, 0 6px 12px rgba(21,101,192,.12)}
+    .primary.secondary:hover{background:#d5e5f8;box-shadow:0 6px 0 #cfe2f6, 0 10px 16px rgba(21,101,192,.16)}
+    .primary.secondary:active{box-shadow:0 2px 0 #cfe2f6}
+    .full{width:100%;margin-top:14px;padding:13px 16px;font-size:15px}
+    .logout{border:1px solid #d6dee8;color:#485568;background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer;box-shadow:0 2px 0 #e2e8f0;transition:transform .12s ease, box-shadow .12s ease}
+    .logout:hover{transform:translateY(-1px);box-shadow:0 3px 0 #d6dee8;background:#f7f9fc}
+    .logout:active{transform:translateY(1px);box-shadow:none}
+    .error{color:#b42318;font-size:13px;min-height:18px;margin:6px 0}
+
+    /* ---------- Login page ---------- */
+    #login{min-height:100vh;display:grid;place-items:center;position:relative;overflow:hidden;background:linear-gradient(135deg,#08213f,#0d4d9e 45%,#1c86e0 100%)}
+    #login::before{content:'';position:absolute;inset:-20%;background:radial-gradient(circle at 20% 20%, rgba(255,255,255,.10), transparent 40%),radial-gradient(circle at 80% 75%, rgba(255,255,255,.08), transparent 45%);pointer-events:none}
+    .login-card{position:relative;width:min(92vw,380px);background:#fff;padding:38px 34px;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);animation:rise .45s ease both}
+    @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .login-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));display:grid;place-items:center;color:#fff;font-weight:800;font-size:20px;margin:0 auto 18px;box-shadow:0 10px 20px rgba(21,101,192,.35)}
+    .login-card h1{margin:0 0 6px;color:var(--ink);font-size:24px;font-weight:800;text-align:center}
+    .login-card p{margin:0 0 24px;color:var(--muted);text-align:center;font-size:14px}
+    .field{width:100%;padding:12px 14px;border:1.5px solid #dde4ed;border-radius:10px;margin:7px 0;color:var(--ink);background:#fbfcfe;transition:border-color .15s ease, box-shadow .15s ease}
+    .field:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(21,101,192,.14);background:#fff}
+
+    /* ---------- App shell ---------- */
+    #app{display:none;min-height:100vh}.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:4;box-shadow:var(--shadow-sm)}.brand{font-size:17px;font-weight:800;color:#114e9e;display:inline-flex;align-items:center;gap:10px}.brand::before{content:'';width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--blue-dark),var(--blue-light));display:inline-block}.brand small{color:var(--muted);font-weight:500}.user{display:flex;gap:10px;align-items:center;font-size:13px}
+    .icon-btn{border:0;background:transparent;font-size:25px;cursor:pointer;border-radius:8px;transition:background .12s ease}.icon-btn:hover{background:#eef3fa}
+
+    .shell{display:flex;min-height:calc(100vh - 64px)}.sidebar{width:245px;background:var(--nav);border-right:1px solid var(--line);padding:13px 8px;flex:none}.nav-item,.nav-parent{border:0;background:transparent;color:#4c596a;text-align:left;width:100%;padding:12px 13px;border-radius:10px;cursor:pointer;font-size:14px;display:flex;gap:10px;align-items:center;position:relative;transition:background .12s ease, color .12s ease}.nav-item:hover,.nav-parent:hover{background:#eef3fa;color:#0867d6}.nav-item.active{background:#e3f0fd;color:#0867d6;font-weight:700}.nav-item.active::before{content:'';position:absolute;left:-8px;top:8px;bottom:8px;width:4px;border-radius:4px;background:var(--blue)}.nav-child{padding-left:38px;font-size:13px}.nav-parent .chevron{margin-left:auto}.submenu{display:none}.submenu.open{display:block}.nav-icon{flex:none;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;color:#7b899e;transition:color .12s ease}.nav-icon svg{width:18px;height:18px}.nav-item:hover .nav-icon,.nav-parent:hover .nav-icon,.nav-item.active .nav-icon{color:#0867d6}.main{width:100%;padding:28px;overflow:auto}.page-title{margin:0 0 5px;font-size:24px;font-weight:800}.page-subtitle{color:var(--muted);margin:0 0 24px;font-size:14px}
+
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(160px,1fr));gap:16px;margin-bottom:22px}.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);padding:18px;box-shadow:var(--shadow-sm);transition:transform .15s ease, box-shadow .15s ease}.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}.card .label{color:var(--muted);font-size:13px}.card .value{font-size:27px;font-weight:800;color:var(--blue);padding-top:7px}.dashboard{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm)}.dashboard iframe{border:0;width:100%;height:calc(100vh - 255px);min-height:550px}.empty-dashboard{padding:34px;color:var(--muted);line-height:1.6}.section-bar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.section-bar h1{margin:0}.section-title{font-size:16px;margin:26px 0 10px;color:#174c85}.table-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);overflow:auto;max-height:calc(100vh - 215px);margin-bottom:18px;box-shadow:var(--shadow-sm)}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:13px}th{background:#eaf2fb;color:#174c85;text-align:left;padding:13px;border-bottom:1px solid #cbd9e7;position:sticky;top:0;z-index:2}td{padding:12px;border-bottom:1px solid var(--line);color:#455469}tr:hover td{background:#f7fbff}.message{background:#fff7e5;color:#855f00;padding:15px;border-radius:9px}.hidden{display:none!important}
+
+    .modal-backdrop{position:fixed;inset:0;background:rgba(10,23,41,.55);backdrop-filter:blur(2px);display:none;place-items:center;z-index:8}.modal{background:#fff;border-radius:16px;width:min(94vw,700px);max-height:88vh;overflow:auto;padding:24px;box-shadow:var(--shadow-lg);animation:rise .25s ease both}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal h2{margin:0;font-size:19px}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}.form-grid label{font-size:12px;color:#536173;font-weight:bold}.form-grid input,.form-grid select{margin-top:5px}.notice{font-size:13px;color:#067647;margin-top:10px;min-height:18px}
+
+    .owners-hero{background:linear-gradient(115deg,#0d4d9e,#1674d1 58%,#35a5e5);border-radius:var(--radius-lg);padding:27px 30px;color:#fff;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 16px 34px rgba(23,101,182,.35)}.owners-hero h1{font-size:27px;margin:0 0 6px}.owners-hero p{margin:0;color:#dceeff}.owners-date{background:#ffffff1d;border:1px solid #ffffff38;border-radius:10px;padding:12px 16px;font-size:13px}.owners-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(270px,.8fr);gap:18px;align-items:start}.owner-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);padding:18px;box-shadow:var(--shadow-sm)}.owner-card h2{font-size:15px;margin:0 0 16px;color:#174c85}.account-table th{background:#0f67be;color:#fff}.account-table tbody tr:nth-child(odd) td{background:#f7faff}.account-table .owner-name{display:flex;align-items:center;gap:9px;font-weight:700;color:#263b57}.avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:white;font-size:11px;background:linear-gradient(135deg,#1565c0,#38a8e8)}.account-table tfoot td{font-weight:800;background:#e6f1ff;color:#103f78;padding:14px 13px;font-size:16px}.owner-bars{display:grid;gap:14px}.owner-bar-row{display:grid;grid-template-columns:64px 1fr 80px;gap:10px;align-items:center;font-size:12px}.owner-bar-track{height:9px;background:#e6eef8;border-radius:10px;overflow:hidden}.owner-bar-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,#1771ce,#43b5e9)}.cash-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:18px}.mini-chip{font-size:12px;background:#e9f5ff;color:#0b66ba;padding:5px 9px;border-radius:20px}.table-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.table-heading h2{margin:0;font-size:16px;color:#174c85}.cheque-table th{background:#146cc3;color:#fff}.cash-table th{background:#075b92;color:#fff}.search-box{padding:8px 12px;border:1.5px solid #dde4ed;border-radius:9px;font-size:13px;width:220px;transition:border-color .15s ease, box-shadow .15s ease}.search-box:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.12)}
+    .date-filter-wrap{position:relative}.date-filter-trigger{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;font-size:13px;font-weight:700;color:#263b57;box-shadow:var(--shadow-sm);transition:border-color .15s ease}.date-filter-trigger:hover{border-color:var(--blue)}.date-filter-trigger svg{width:16px;height:16px;color:var(--blue);flex:none}.date-filter-popover{position:absolute;top:calc(100% + 8px);right:0;z-index:6;background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:16px;display:none;min-width:250px}.date-filter-popover.open{display:block}.date-filter-popover label{display:block;font-size:12px;font-weight:700;color:#536173;margin-bottom:5px}.date-filter-popover input[type=date]{width:100%;box-sizing:border-box;padding:8px 9px;border:1.5px solid #dde4ed;border-radius:8px;font-size:13px;color:#263b57;margin-bottom:12px}.date-filter-popover input[type=date]:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(21,101,192,.12)}.date-filter-popover .actions{display:flex;justify-content:flex-end;gap:8px}
+    .valuation-card{margin-top:18px}.valuation-total{font-size:32px;font-weight:800;color:var(--blue);margin:8px 0 4px}
+    .valuation-chart-wrap{position:relative;margin-top:10px}.valuation-chart-wrap svg{width:100%;height:260px;display:block;overflow:visible}
+    .valuation-grid-line{stroke:#e7ecf2;stroke-width:1}.valuation-axis-label{font-size:11px;fill:var(--muted);font-family:'Inter',Arial,sans-serif}
+    .valuation-area{fill:var(--blue);opacity:.08}.valuation-line{fill:none;stroke:var(--blue);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+    .valuation-end-dot{fill:var(--blue)}.valuation-end-label{font-size:12px;font-weight:700;fill:#103f78;font-family:'Inter',Arial,sans-serif}
+    .valuation-hover-line{stroke:#9fb7d6;stroke-width:1;stroke-dasharray:3 3;opacity:0;pointer-events:none;transition:opacity .1s ease}
+    .valuation-hover-dot{fill:#fff;stroke:var(--blue);stroke-width:2;opacity:0;pointer-events:none;transition:opacity .1s ease}
+    .valuation-overlay{fill:transparent;pointer-events:all;cursor:crosshair}
+    .valuation-tooltip{position:absolute;left:0;top:0;pointer-events:none;background:#103f78;color:#fff;font-size:12px;line-height:1.5;padding:7px 11px;border-radius:8px;box-shadow:0 6px 16px rgba(16,63,120,.28);opacity:0;transform:translate(-50%,-115%);white-space:nowrap;transition:opacity .1s ease;z-index:5}
+    .valuation-legend{display:flex;align-items:center;gap:7px;font-size:12px;color:#455469;font-weight:600;margin:2px 0 2px}
+    .valuation-legend-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);display:inline-block}
+    .valuation-point-label{font-size:9px;fill:#1467d2;font-weight:700;font-family:'Inter',Arial,sans-serif}
+    .valuation-point-dot{fill:var(--blue)}
+    .valuation-trend-line{fill:none;stroke:#c0392b;stroke-width:1.5;stroke-dasharray:5 4;opacity:.7}
+
+    .skeleton{background:linear-gradient(90deg,#edf2f7 25%,#e2e8f0 37%,#edf2f7 63%);background-size:400% 100%;animation:skeleton-loading 1.4s ease infinite;border-radius:8px}.sk-card{height:100px;margin-bottom:16px}.sk-table{height:250px;margin-bottom:16px}
+    @keyframes skeleton-loading{0%{background-position:100% 50%}100%{background-position:0 50%}}
+    .load-bar-wrap{margin:2px 0 22px}.load-bar-label{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:8px}.load-bar-stage{font-weight:600;color:#455469}.load-bar-pct{font-weight:800;color:#174c85;font-size:14px;font-variant-numeric:tabular-nums}.load-bar-track{height:8px;background:#e6eef8;border-radius:20px;overflow:hidden}.load-bar-fill{height:100%;width:4%;border-radius:20px;background:linear-gradient(90deg,#1771ce,#43b5e9);transition:width .35s ease}
+    .stock-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .stock-tab{border:1.5px solid #dde4ed;background:#fff;color:#455469;padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13px;transition:transform .12s ease, box-shadow .12s ease, background .12s ease}
+    .stock-tab:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(21,101,192,.15)}
+    .stock-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 3px 0 #0d4d9e}
+    .stock-filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+    .stock-filters select{padding:8px 10px;border:1.5px solid #dde4ed;border-radius:9px;font-size:13px;color:var(--ink)}
+    tr.negative-row td{background:#fde8e8!important}
+    .pagination{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 4px 2px;font-size:13px;color:var(--muted)}
+    .pagination button{border:1.5px solid #dde4ed;background:#fff;color:#455469;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13px;transition:transform .12s ease, box-shadow .12s ease}
+    .pagination button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 3px 8px rgba(21,101,192,.15)}
+    .pagination button:disabled{opacity:.4;cursor:not-allowed}
+    /* Fixed-height "peek 5 rows, scroll for the rest" tables (used for
+       Cheques/Cash Transactions on the Owners page). Row height here
+       (~41px) x 5 + the sticky header (~42px) = the max-height below. */
+    .table-card--compact{max-height:247px}
+    .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+    .badge-due{background:#fde8e8;color:#b42318}
+    .badge-done{background:#e6f4ea;color:#1e7e34}
+    .badge-none{background:#eef1f5;color:#8a94a3}
+    tr.row-due td{background:#fff3f2}
+    tr.row-due:hover td{background:#ffe9e7}
+    @media(max-width:760px){.sidebar{position:fixed;left:-245px;top:64px;height:calc(100vh - 64px);z-index:6;transition:.2s}.sidebar.open{left:0}.topbar{padding:0 12px}.main{padding:18px}.stats,.owners-grid{grid-template-columns:1fr}.menu-toggle{display:inline-block}.form-grid{grid-template-columns:1fr}}@media(min-width:761px){.menu-toggle{display:none}}
+  </style>
+</head>
+<body>
+  <section id="login">
+    <form class="login-card" onsubmit="login(event)">
+      <div class="login-logo">FD</div>
+      <h1>Welcome back</h1>
+      <p>Sign in to Future Designers management system</p>
+      <div id="loginError" class="error"></div>
+      <input id="username" class="field" required placeholder="Username" autocomplete="username">
+      <input id="password" class="field" required placeholder="Password" type="password" autocomplete="current-password">
+      <button class="primary full">Sign in</button>
+    </form>
+  </section>
+
+  <section id="app">
+    <header class="topbar">
+      <div>
+        <button class="menu-toggle icon-btn" onclick="toggleMenu()">☰</button>
+        <span class="brand">Future Designers <small>Management System</small></span>
+      </div>
+      <div class="user">
+        <span id="userName"></span>
+        <button id="newEntryBtn" class="primary hidden" onclick="openEntryModal('database','Database','Add Database Entry')">+ New entry</button>
+        <button class="logout" onclick="signOut()">Logout</button>
+      </div>
+    </header>
+    <div class="shell">
+      <aside id="sidebar" class="sidebar">
+        <button class="nav-item active" data-home onclick="showHome()"><span class="nav-icon"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5 9 3l7 5.5"></path><path d="M4 7.5V15h10V7.5"></path><path d="M7 15v-4h4v4"></path></svg></span> <span>Home</span></button>
+        <div id="menu"></div>
+      </aside>
+      <main id="main" class="main"></main>
+    </div>
+  </section>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <section class="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle">Add Record</h2>
+        <button class="icon-btn" onclick="closeModal()">×</button>
+      </div>
+      <form id="recordForm" onsubmit="saveRecord(event)">
+        <div id="formFields" class="form-grid"></div>
+        <div id="formNotice" class="notice"></div>
+        <button class="primary full">Save Entry</button>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    // Deployed Apps Script Web App URL (Deploy > Manage deployments > copy
+    // the link ending in /exec). This page can now live anywhere - GitHub
+    // Pages, any static host - as long as this points at that URL; every
+    // read/write to the Google Sheet still happens over there, never here.
+    const API_URL = 'https://script.google.com/macros/s/AKfycbziFNYMReCYr6MjOuDbDXvtZLAlGWzzCfAX-tScLaQerdwMmCQzQPZXAjCbr8z8Fxjd/exec';
+
+
+    // Consistent line-icon set for the sidebar (one style, one weight)
+    // instead of the old mix of random unicode glyphs. Keyed by the
+    // short "icon" string Code.gs's APP.navigation now sends.
+    const ICONS = {
+      dot: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3"></circle></svg>',
+      home: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5 9 3l7 5.5"></path><path d="M4 7.5V15h10V7.5"></path><path d="M7 15v-4h4v4"></path></svg>',
+      owners: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="4.2" r="2"></circle><path d="M5.3 10.8c0-2 1.7-3 3.7-3s3.7 1 3.7 3"></path><circle cx="3.6" cy="9.4" r="1.6"></circle><path d="M1 14.5c0-1.6 1.2-2.4 2.6-2.4s2.6.8 2.6 2.4"></path><circle cx="14.4" cy="9.4" r="1.6"></circle><path d="M11.8 14.5c0-1.6 1.2-2.4 2.6-2.4s2.6.8 2.6 2.4"></path></svg>',
+      customers: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M1.5 15.5c0-2.8 2.2-4.5 5-4.5s5 1.7 5 4.5"></path><circle cx="13" cy="6.5" r="2"></circle><path d="M11 15.5c.1-2 1.6-3.3 3.4-3.3"></path></svg>',
+      suppliers: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="5" width="8" height="6.5" rx=".8"></rect><path d="M9.5 8h3.2l2.3 2.3v1.2h-2"></path><circle cx="5" cy="13.5" r="1.4"></circle><circle cx="12.5" cy="13.5" r="1.4"></circle></svg>',
+      stock: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="6" rx=".8"></rect><rect x="10" y="2" width="6" height="6" rx=".8"></rect><rect x="2" y="10" width="6" height="6" rx=".8"></rect><rect x="10" y="10" width="6" height="6" rx=".8"></rect></svg>',
+      management: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="9" rx="1.2"></rect><path d="M6.5 6V4.2a1.2 1.2 0 0 1 1.2-1.2h2.6a1.2 1.2 0 0 1 1.2 1.2V6"></path><path d="M2 10h14"></path></svg>',
+      salesGpMargin: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,13 7,8 10.5,11 16,4.5"></polyline><polyline points="11.5,4.5 16,4.5 16,9"></polyline></svg>',
+      service: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.6"></circle><path d="M9 2.5v2M9 13.5v2M15.5 9h-2M4.5 9h-2M13.6 4.4l-1.4 1.4M5.8 12.2l-1.4 1.4M13.6 13.6l-1.4-1.4M5.8 5.8 4.4 4.4"></path></svg>',
+      quotation: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h7l3 3v11H4z"></path><path d="M11 2v3h3"></path><path d="M6.5 9h5M6.5 12h5"></path></svg>',
+      invoices: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h10v14l-1.5-1-1.5 1-1.5-1-1.5 1-1.5-1-1.5 1-1.5-1z"></path><path d="M6.5 6h5M6.5 9h5"></path></svg>',
+      grossProfit: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.3"></circle><path d="M9 2.7V9l5 3.1"></path></svg>',
+      gpStockValue: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="3.4" height="7"></rect><rect x="11" y="4" width="3.4" height="11"></rect></svg>',
+      sales: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2.5h4a1 1 0 0 1 1 1v4l-7.3 7.3a1 1 0 0 1-1.4 0L2.2 11.2a1 1 0 0 1 0-1.4z"></path><circle cx="11.7" cy="6.3" r="1"></circle></svg>',
+    };
+
+    function navIcon(key) {
+      return `<span class="nav-icon">${ICONS[key] || ICONS.dot}</span>`;
+    }
+
+    let sessionId = '', currentSheet = '', currentLabel = '', currentHeaders = [];
+    let modalMode = 'database', modalSheet = 'Database';
+    const esc = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+    // Same call('functionName', arg1, arg2, ...) shape the rest of this
+    // file already uses - only the transport changed, from
+    // google.script.run (which only exists inside Apps Script's own
+    // page) to a plain fetch() against the API_URL above. Content-Type
+    // text/plain keeps this a CORS "simple request" so the browser
+    // doesn't send a preflight OPTIONS call, which Apps Script web apps
+    // don't answer.
+    // A request that never resolves (a dropped connection, a stuck Apps
+    // Script execution, ...) used to leave the caller's await hanging
+    // forever with the loading bar frozen at its last stage and no
+    // error ever shown. AbortController turns that silent hang into a
+    // real rejection after CALL_TIMEOUT_MS, so handleError() always
+    // gets a chance to run.
+    const CALL_TIMEOUT_MS = 45000;
+    const call = (method, ...args) => {
+      if (!API_URL || API_URL.indexOf('PASTE_YOUR') === 0) {
+        return Promise.reject(new Error('API_URL is not set yet - paste your Apps Script Web App /exec URL at the top of the script.'));
+      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), CALL_TIMEOUT_MS);
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: method, args: args }),
+        signal: controller.signal,
+      })
+        .then(res => res.json())
+        .then(res => {
+          if (!res || res.success === false) throw new Error((res && res.message) || 'Request failed.');
+          return res.data;
+        })
+        .catch(err => {
+          if (err && err.name === 'AbortError') throw new Error('The server took too long to respond (over 45s) - please try again, or check your connection.');
+          throw err;
+        })
+        .finally(() => clearTimeout(timeoutId));
+    };
+
+    async function login(event) {
+      event.preventDefault();
+      const error = document.getElementById('loginError');
+      error.textContent = '';
+      try {
+        const result = await call('checkLogin', username.value, password.value);
+        if (!result.success) { error.textContent = result.message; return; }
+        sessionId = result.sessionId;
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('userName').textContent = `${result.user} (${result.role})`;
+        const app = await call('getAppBootstrap', sessionId);
+        document.getElementById('newEntryBtn').classList.toggle('hidden', !app.canAddDatabase);
+        renderMenu(app.menu);
+        renderHome(app.overview, app.lookerEmbedUrl);
+      } catch (e) { error.textContent = e; }
+    }
+
+    function signOut() {
+      call('logout', sessionId);
+      location.reload();
+    }
+
+    function renderMenu(menu) {
+      const root = document.getElementById('menu');
+      root.innerHTML = menu.map((item, index) => item.children ?
+        `<div><button class="nav-parent" onclick="toggleGroup(${index})">${navIcon(item.icon)} <span>${esc(item.label)}</span><span class="chevron">⌄</span></button><div id="group-${index}" class="submenu">${item.children.map(child => navButton(child, true)).join('')}</div></div>` :
+        navButton(item, false)
+      ).join('');
+    }
+
+    function navButton(item, child) {
+      return `<button class="nav-item ${child ? 'nav-child' : ''}" onclick="openSection('${esc(item.sheet)}','${esc(item.label)}')">${child ? '' : navIcon(item.icon)} <span>${esc(item.label)}</span></button>`;
+    }
+
+    function toggleGroup(index) { document.getElementById('group-' + index).classList.toggle('open'); }
+    function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
+    function markActive(button) { document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active')); if (button) button.classList.add('active'); }
+
+    async function showHome() {
+      markActive(document.querySelector('[data-home]'));
+      try {
+        const app = await call('getAppBootstrap', sessionId);
+        renderHome(app.overview, app.lookerEmbedUrl);
+      } catch (e) { handleError(e); }
+    }
+
+    function renderHome(overview, lookerUrl) {
+      currentSheet = ''; currentLabel = '';
+      document.getElementById('main').innerHTML = `<h1 class="page-title">Home</h1><p class="page-subtitle">Your data and reports in one place.</p><div class="stats"><div class="card"><div class="label">Available sections</div><div class="value">${overview.sections}</div></div><div class="card"><div class="label">Records in Google Sheets</div><div class="value">${overview.records.toLocaleString()}</div></div><div class="card"><div class="label">Last refreshed</div><div class="value" style="font-size:16px">${esc(overview.updatedAt)}</div></div></div><div class="dashboard">${lookerUrl ? `<iframe src="${esc(lookerUrl)}" allowfullscreen></iframe>` : `<div class="empty-dashboard"><strong>Dashboard is ready for connection.</strong><br>In Looker Studio, enable <em>Embed report</em>, copy the generated embed URL, then paste it into <code>APP.lookerEmbedUrl</code> in Code.gs.</div>`}</div>`;
+    }
+
+    // Apps Script answers with one single response at the end - there is no
+    // real progress to report mid-request. This simulates a believable
+    // progression instead (elapsed-time based stages with a name for what
+    // is likely happening), so the page never looks frozen. The interval
+    // checks its own DOM elements each tick and stops itself once #main has
+    // been replaced by the real content (success) or an error box - so
+    // callers never need to remember to clear it.
+    const LOAD_STAGES = [
+      { at: 0, pct: 6, text: 'Connecting to Google Sheet…' },
+      { at: 500, pct: 28, text: 'Reading rows from Database…' },
+      { at: 1600, pct: 52, text: 'Calculating totals…' },
+      { at: 3200, pct: 74, text: 'Building the Valuation trend…' },
+      { at: 6000, pct: 90, text: 'Almost done…' },
+    ];
+    let loadBarTimer = null;
+
+    function renderSkeleton() {
+      document.getElementById('main').innerHTML = `
+        <div class="load-bar-wrap">
+          <div class="load-bar-label"><span class="load-bar-stage" id="loadBarStage">${LOAD_STAGES[0].text}</span><span class="load-bar-pct" id="loadBarPct">${LOAD_STAGES[0].pct}%</span></div>
+          <div class="load-bar-track"><div class="load-bar-fill" id="loadBarFill" style="width:${LOAD_STAGES[0].pct}%"></div></div>
+        </div>
+        <div class="skeleton sk-card"></div><div class="stats"><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div></div><div class="skeleton sk-table"></div>`;
+      if (loadBarTimer) clearInterval(loadBarTimer);
+      const startedAt = Date.now();
+      loadBarTimer = setInterval(() => {
+        const fill = document.getElementById('loadBarFill');
+        const pct = document.getElementById('loadBarPct');
+        const stage = document.getElementById('loadBarStage');
+        if (!fill || !pct || !stage) { clearInterval(loadBarTimer); loadBarTimer = null; return; }
+        const elapsed = Date.now() - startedAt;
+        let current = LOAD_STAGES[0];
+        LOAD_STAGES.forEach(s => { if (elapsed >= s.at) current = s; });
+        fill.style.width = current.pct + '%';
+        pct.textContent = current.pct + '%';
+        stage.textContent = current.text;
+      }, 250);
+    }
+
+    let ownersRange = { from: '', to: '' };
+
+    async function openOwners(forceRefresh = false, from, to) {
+      document.getElementById('sidebar').classList.remove('open');
+      markActive(null);
+      currentSheet = 'Database'; currentLabel = 'Owners';
+      if (from !== undefined) ownersRange.from = from;
+      if (to !== undefined) ownersRange.to = to;
+      renderSkeleton();
+      try {
+        // One call - Code.gs computes the Owners aggregates AND the
+        // Valuation snapshot from the same single sheet read, so this
+        // page only ever needs one round trip to the Web App.
+        const data = await call('getOwnersDashboardData', sessionId, forceRefresh, ownersRange.from, ownersRange.to);
+        renderOwners(data, data.valuation);
+      } catch (e) { handleError(e); }
+    }
+
+    function applyOwnersRange() {
+      const from = document.getElementById('ownersFrom').value;
+      const to = document.getElementById('ownersTo').value;
+      openOwners(false, from, to);
+    }
+
+    function clearOwnersRange() {
+      openOwners(false, '', '');
+    }
+
+    function toggleDateFilterPopover(event) {
+      event.stopPropagation();
+      const pop = document.getElementById('ownersDatePopover');
+      if (pop) pop.classList.toggle('open');
+    }
+
+    // Registered once at load, not per-render, so it survives #main
+    // being replaced on every openOwners()/renderOwners() call.
+    document.addEventListener('click', function (event) {
+      const wrap = document.querySelector('.date-filter-wrap');
+      const pop = document.getElementById('ownersDatePopover');
+      if (pop && wrap && !wrap.contains(event.target)) pop.classList.remove('open');
+    });
+
+    async function openSection(sheet, label) {
+      document.getElementById('sidebar').classList.remove('open');
+      markActive(null);
+      if (label === 'Owners') { openOwners(); return; }
+      if (label === 'Stock') { openStock(); return; }
+      if (label === 'Management') { openManagement(); return; }
+      currentSheet = sheet; currentLabel = label;
+      renderSkeleton();
+      try {
+        const data = await call('getSectionData', sessionId, sheet);
+        currentHeaders = data.headers;
+        renderSection(label, data);
+      } catch (e) { handleError(e); }
+    }
+
+    const money = (number, currency = 'EGP') => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(number || 0) + (currency === 'USD' ? ' $' : ' EGP');
+    const qty = n => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(n || 0);
+    const moneyShort = n => {
+      const abs = Math.abs(n || 0), sign = (n || 0) < 0 ? '-' : '';
+      if (abs >= 1e6) return sign + (abs / 1e6).toFixed(abs >= 1e7 ? 0 : 1) + 'M';
+      if (abs >= 1e3) return sign + (abs / 1e3).toFixed(abs >= 1e4 ? 0 : 1) + 'K';
+      return sign + Math.round(abs);
+    };
+
+    // Company Valuation trend chart: a hand-drawn inline-SVG line chart (no
+    // charting library) - single series, so no legend box is needed (the
+    // card title already names it). Geometry is computed twice on purpose:
+    // once here to draw the static SVG, once in attachValuationChartEvents
+    // to place the hover crosshair - the two must agree on the same
+    // plotting box (VB_LEFT/RIGHT/TOP/BOTTOM below) so the crosshair lines
+    // up with the drawn points.
+    // VB_H matches the CSS height 1:1 (no vertical stretch) - taller here
+    // means a genuinely bigger plotted area, not distorted text/markers.
+    const VB_LEFT = 54, VB_RIGHT = 690, VB_TOP = 22, VB_BOTTOM = 230, VB_W = 760, VB_H = 260;
+    function valuationScales(series) {
+      const values = series.map(s => s.total);
+      let minV = Math.min(...values), maxV = Math.max(...values);
+      if (minV === maxV) { minV -= Math.max(1, Math.abs(minV) * 0.1); maxV += Math.max(1, Math.abs(maxV) * 0.1); }
+      const pad = (maxV - minV) * 0.12; minV -= pad; maxV += pad;
+      const xFor = i => series.length === 1 ? (VB_LEFT + VB_RIGHT) / 2 : VB_LEFT + i * ((VB_RIGHT - VB_LEFT) / (series.length - 1));
+      const yFor = v => VB_TOP + (VB_BOTTOM - VB_TOP) * (1 - (v - minV) / (maxV - minV));
+      return { minV, maxV, xFor, yFor };
+    }
+
+    // Least-squares linear regression over (index, total) - drawn as the
+    // dashed reference line alongside the actual monthly line, matching the
+    // trendline Gemmy's Looker Studio report shows next to the real series.
+    function linearTrend(series) {
+      const n = series.length;
+      if (n < 2) return null;
+      let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+      series.forEach((s, i) => { sumX += i; sumY += s.total; sumXY += i * s.total; sumXX += i * i; });
+      const denom = n * sumXX - sumX * sumX;
+      if (!denom) return null;
+      const slope = (n * sumXY - sumX * sumY) / denom;
+      const intercept = (sumY - slope * sumX) / n;
+      return { at: i => intercept + slope * i };
+    }
+
+    function renderValuationChart(series) {
+      if (!series.length) return '<p class="muted-note" style="padding:18px 4px">No monthly history yet - add dated rows to see the trend.</p>';
+      const { minV, maxV, xFor, yFor } = valuationScales(series);
+      const points = series.map((s, i) => ({ x: xFor(i), y: yFor(s.total), label: s.label, total: s.total }));
+      const last = points[points.length - 1];
+      const linePath = 'M' + points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L');
+      const areaPath = `${linePath} L${last.x.toFixed(1)},${VB_BOTTOM} L${points[0].x.toFixed(1)},${VB_BOTTOM} Z`;
+      const midV = (minV + maxV) / 2;
+      const endNearRight = last.x > VB_RIGHT - 60;
+      const endLabelAnchor = endNearRight ? 'end' : 'start';
+      const endLabelX = endNearRight ? last.x - 8 : last.x + 8;
+      const endLabelY = last.y < VB_TOP + 14 ? last.y + 16 : last.y - 10;
+
+      const trend = linearTrend(series);
+      const trendPath = trend ? 'M' + points.map((p, i) => `${p.x.toFixed(1)},${yFor(trend.at(i)).toFixed(1)}`).join(' L') : '';
+
+      // Every point gets its own small value label, angled and cascading
+      // along the line the way the reference report shows it - dense on
+      // purpose, since Gemmy asked to match that look exactly rather than
+      // the usual "label the endpoint only" convention.
+      const pointMarks = points.map(p => `<circle class="valuation-point-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.2"></circle><text class="valuation-point-label" x="${p.x.toFixed(1)}" y="${(p.y - 8).toFixed(1)}" text-anchor="start" transform="rotate(-38 ${p.x.toFixed(1)} ${(p.y - 8).toFixed(1)})">${esc(moneyShort(p.total))}</text>`).join('');
+
+      return `
+        <div class="valuation-legend"><span class="valuation-legend-dot"></span>Company Valuation</div>
+        <svg viewBox="0 0 ${VB_W} ${VB_H}" preserveAspectRatio="none" role="img" aria-label="Company valuation by month">
+          <line class="valuation-grid-line" x1="${VB_LEFT}" y1="${VB_TOP}" x2="${VB_RIGHT}" y2="${VB_TOP}"></line>
+          <line class="valuation-grid-line" x1="${VB_LEFT}" y1="${(VB_TOP + VB_BOTTOM) / 2}" x2="${VB_RIGHT}" y2="${(VB_TOP + VB_BOTTOM) / 2}"></line>
+          <line class="valuation-grid-line" x1="${VB_LEFT}" y1="${VB_BOTTOM}" x2="${VB_RIGHT}" y2="${VB_BOTTOM}"></line>
+          <text class="valuation-axis-label" x="${VB_LEFT - 8}" y="${VB_TOP + 4}" text-anchor="end">${esc(moneyShort(maxV))}</text>
+          <text class="valuation-axis-label" x="${VB_LEFT - 8}" y="${(VB_TOP + VB_BOTTOM) / 2 + 4}" text-anchor="end">${esc(moneyShort(midV))}</text>
+          <text class="valuation-axis-label" x="${VB_LEFT - 8}" y="${VB_BOTTOM + 4}" text-anchor="end">${esc(moneyShort(minV))}</text>
+          <path class="valuation-area" d="${areaPath}"></path>
+          ${trendPath ? `<path class="valuation-trend-line" d="${trendPath}"></path>` : ''}
+          <path class="valuation-line" d="${linePath}"></path>
+          ${pointMarks}
+          <circle class="valuation-end-dot" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="4"></circle>
+          <text class="valuation-end-label" x="${endLabelX.toFixed(1)}" y="${endLabelY.toFixed(1)}" text-anchor="${endLabelAnchor}">${esc(money(last.total))}</text>
+          <text class="valuation-axis-label" x="${points[0].x.toFixed(1)}" y="${VB_BOTTOM + 22}" text-anchor="start">${esc(points[0].label)}</text>
+          ${points.length > 1 ? `<text class="valuation-axis-label" x="${last.x.toFixed(1)}" y="${VB_BOTTOM + 22}" text-anchor="end">${esc(last.label)}</text>` : ''}
+          <line id="valuationHoverLine" class="valuation-hover-line" x1="0" y1="${VB_TOP}" x2="0" y2="${VB_BOTTOM}"></line>
+          <circle id="valuationHoverDot" class="valuation-hover-dot" cx="0" cy="0" r="5"></circle>
+          <rect id="valuationOverlay" class="valuation-overlay" x="${VB_LEFT}" y="0" width="${VB_RIGHT - VB_LEFT}" height="${VB_H}"></rect>
+        </svg>
+        <div class="valuation-tooltip" id="valuationTooltip"></div>`;
+    }
+
+    function attachValuationChartEvents(series) {
+      const overlay = document.getElementById('valuationOverlay');
+      if (!overlay || series.length < 2) return; // single point/empty: static chart, no crosshair needed
+      const hoverLine = document.getElementById('valuationHoverLine');
+      const hoverDot = document.getElementById('valuationHoverDot');
+      const tooltip = document.getElementById('valuationTooltip');
+      const svg = overlay.ownerSVGElement;
+      const { xFor, yFor } = valuationScales(series);
+
+      const showAt = index => {
+        const point = series[index];
+        const x = xFor(index), y = yFor(point.total);
+        hoverLine.setAttribute('x1', x); hoverLine.setAttribute('x2', x); hoverLine.style.opacity = 1;
+        hoverDot.setAttribute('cx', x); hoverDot.setAttribute('cy', y); hoverDot.style.opacity = 1;
+        tooltip.innerHTML = `<strong>${esc(point.label)}</strong><br>${esc(money(point.total))}`;
+        tooltip.style.opacity = 1;
+        const rect = svg.getBoundingClientRect();
+        tooltip.style.left = (x * (rect.width / VB_W)) + 'px';
+        tooltip.style.top = (y * (rect.height / VB_H)) + 'px';
+      };
+      const hide = () => { hoverLine.style.opacity = 0; hoverDot.style.opacity = 0; tooltip.style.opacity = 0; };
+
+      overlay.onmousemove = event => {
+        const rect = svg.getBoundingClientRect();
+        const relX = (event.clientX - rect.left) / rect.width * VB_W;
+        let nearest = 0, nearestDist = Infinity;
+        series.forEach((s, i) => { const dist = Math.abs(xFor(i) - relX); if (dist < nearestDist) { nearestDist = dist; nearest = i; } });
+        showAt(nearest);
+      };
+      overlay.onmouseleave = hide;
+    }
+
+    function renderOwners(data, valuation) {
+      const rows = data.owners.map(o => `<tr><td><span class="owner-name"><span class="avatar">${esc(o.owner.slice(0, 2).toUpperCase())}</span>${esc(o.owner)}</span></td><td>${money(o.cashEgp)}</td><td style="color:#1467d2">${money(o.cashUsd, 'USD')}</td><td><strong>${money(o.totalEgp)}</strong></td><td>${money(o.chequesEgp)}</td></tr>`).join('') || '<tr><td colspan="5">No payment rows found.</td></tr>';
+
+      const dueBadge = status => status === 'Yes' ? '<span class="badge badge-due">Due</span>' : status === 'Done' ? '<span class="badge badge-done">Cleared</span>' : '<span class="badge badge-none">-</span>';
+      const chequeRows = data.chequeRows.map(r => `<tr class="searchable ${r.dueStatus === 'Yes' ? 'row-due' : ''}"><td>${esc(r.dueDate || '-')}</td><td>${esc(r.owner)}</td><td>${esc(r.customer)}</td><td>${esc(r.reference)}</td><td>${money(r.egp)}</td><td>${dueBadge(r.dueStatus)}</td></tr>`).join('') || '<tr><td colspan="6">No cheques found.</td></tr>';
+      const cashRows = data.cashRows.map(r => `<tr class="searchable"><td>${esc(r.owner)}</td><td>${esc(r.date)}</td><td>${esc(r.status)}</td><td>${esc(r.supplier)}</td><td>${esc(r.customer)}</td><td>${money(r.egp)}</td><td>${money(r.usd, 'USD')}</td><td>${esc(r.usdRate || '-')}</td><td>${money(r.usdEgp)}</td></tr>`).join('') || '<tr><td colspan="9">No cash transactions found.</td></tr>';
+
+      const hasRange = !!(data.range.from || data.range.to);
+      const rangeLabel = hasRange ? (data.range.from || 'start') + ' → ' + (data.range.to || 'today') : 'All-time';
+      const valuationTotal = valuation ? valuation.total : 0;
+      const series = valuation && valuation.series ? valuation.series : [];
+
+      document.getElementById('main').innerHTML = `
+        <section class="owners-hero">
+          <div>
+            <h1>Valuation &amp; Owners’ Accounts</h1>
+            <p>Live statement from Database sheet</p>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="primary secondary" onclick="openOwners(true)">↻ Refresh</button>
+            <div class="owners-date">Last refreshed<br><strong>${new Date().toLocaleDateString()}</strong></div>
+          </div>
+        </section>
+        <div class="section-bar">
+          <div>
+            <h1 class="page-title">Owners Overview</h1>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="date-filter-wrap">
+              <button type="button" class="date-filter-trigger" onclick="toggleDateFilterPopover(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+                ${esc(rangeLabel)}
+              </button>
+              <div class="date-filter-popover" id="ownersDatePopover">
+                <label>From<input type="date" id="ownersFrom" value="${esc(data.range.from || '')}"></label>
+                <label>To<input type="date" id="ownersTo" value="${esc(data.range.to || '')}"></label>
+                <div class="actions">
+                  ${hasRange ? '<button type="button" class="primary secondary" onclick="clearOwnersRange()">Clear</button>' : ''}
+                  <button type="button" class="primary" onclick="applyOwnersRange()">Apply</button>
+                </div>
+              </div>
+            </div>
+            ${document.getElementById('newEntryBtn').classList.contains('hidden') ? '' : `<button class="primary" onclick="openEntryModal('database','Database','Add Database Entry')">+ New entry</button>`}
+          </div>
+        </div>
+        <section class="owner-card valuation-card">
+          <div class="table-heading"><h2>Company Valuation</h2><span class="mini-chip">All-time, monthly trend</span></div>
+          <div class="valuation-total">${money(valuationTotal)}</div>
+          <div class="valuation-chart-wrap" id="valuationChartWrap">${renderValuationChart(series)}</div>
+        </section>
+        <section class="owner-card">
+          <div class="table-heading"><h2>Account Statement</h2><span class="mini-chip">Payment rows only</span></div>
+          <div class="table-card">
+            <table class="account-table">
+              <thead><tr><th>Owner</th><th>Cash EGP</th><th>Cash USD</th><th>Total Cash EGP</th><th>Cheques EGP</th></tr></thead>
+              <tbody>${rows}</tbody>
+              <tfoot><tr><td>Grand total</td><td>${money(data.totals.cashEgp)}</td><td>${money(data.totals.cashUsd, 'USD')}</td><td>${money(data.totals.totalEgp)}</td><td>${money(data.totals.chequesEgp)}</td></tr></tfoot>
+            </table>
+          </div>
+        </section>
+        <div class="cash-layout">
+          <section class="owner-card">
+            <div class="table-heading">
+              <h2>Cheques Transactions</h2>
+              <input type="text" class="search-box" placeholder="Search cheques..." onkeyup="filterTable(this)">
+            </div>
+            <div class="table-card table-card--compact">
+              <table class="cheque-table">
+                <thead><tr><th>Due Date</th><th>Owner</th><th>Customer</th><th>Reference</th><th>EGP Amount</th><th>Due</th></tr></thead>
+                <tbody>${chequeRows}</tbody>
+              </table>
+            </div>
+          </section>
+          <section class="owner-card">
+            <div class="table-heading">
+              <h2>Cash Transactions</h2>
+              <input type="text" class="search-box" placeholder="Search cash..." onkeyup="filterTable(this)">
+            </div>
+            <div class="table-card table-card--compact">
+              <table class="cash-table">
+                <thead><tr><th>Owner</th><th>Date</th><th>Status</th><th>Supplier</th><th>Customer</th><th>EGP</th><th>USD</th><th>USD Rate</th><th>USD EGP</th></tr></thead>
+                <tbody>${cashRows}</tbody>
+              </table>
+            </div>
+          </section>
+        </div>`;
+      attachValuationChartEvents(series);
+    }
+
+    let stockState = { data: null, supplier: 'All', zipperType: '', reference: '', search: '', viewMode: 'detail', page: 1 };
+    const STOCK_PAGE_SIZE = 100;
+
+    async function openStock(forceRefresh = false) {
+      document.getElementById('sidebar').classList.remove('open');
+      markActive(null);
+      currentSheet = 'Database'; currentLabel = 'Stock';
+      renderSkeleton();
+      try {
+        const data = await call('getStockDashboardData', sessionId, forceRefresh);
+        renderStock(data);
+      } catch (e) { handleError(e); }
+    }
+
+    function renderStock(data) {
+      stockState = { data: data, supplier: 'All', zipperType: '', reference: '', search: '', viewMode: 'detail', page: 1 };
+
+      const negativeSection = data.negativeItems.length ? `
+        <section class="owner-card" style="margin-bottom:18px;border-color:#f3c6c0">
+          <div class="table-heading"><h2 style="color:#b42318">⚠ Negative Stock Alerts</h2><span class="mini-chip" style="background:#fde8e8;color:#b42318">${data.negativeItems.length} item(s) below zero</span></div>
+          <div class="table-card">
+            <table class="cheque-table">
+              <thead><tr><th>Item Description</th><th>Length</th><th>Color</th><th>Supplier</th><th>Stock Avail Qty</th><th>Remain After Deliveries</th></tr></thead>
+              <tbody>${data.negativeItems.map(i => `<tr><td>${esc(i.item)}</td><td>${esc(i.length)}</td><td>${esc(i.color)}</td><td>${esc(i.supplier)}</td><td style="color:#b42318;font-weight:700">${qty(i.stockAvail)}</td><td style="color:#b42318;font-weight:700">${qty(i.remainAfter)}</td></tr>`).join('')}</tbody>
+            </table>
+          </div>
+        </section>` : '';
+
+      const supplierTabs = ['All'].concat(data.filters.suppliers).map(s => `<button class="stock-tab ${s === 'All' ? 'active' : ''}" data-supplier="${esc(s)}" onclick="setStockSupplier('${esc(s)}', this)">${esc(s)}</button>`).join('');
+      const opt = list => list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+
+      document.getElementById('main').innerHTML = `
+        <section class="owners-hero">
+          <div><h1>Stock Overview</h1><p>Live inventory computed from Database transactions</p></div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="primary secondary" onclick="openStock(true)">↻ Refresh</button>
+            <div class="owners-date">Last refreshed<br><strong>${new Date().toLocaleDateString()}</strong></div>
+          </div>
+        </section>
+        <div class="stats">
+          <div class="card"><div class="label">Stock Avail Qty</div><div class="value">${qty(data.totals.stockAvail)}</div></div>
+          <div class="card"><div class="label">Stock In Not Delivered</div><div class="value">${qty(data.totals.stockIn)}</div></div>
+          <div class="card"><div class="label">Order Out Not Delivered</div><div class="value">${qty(data.totals.orderOut)}</div></div>
+          <div class="card"><div class="label">Current Stock Remain</div><div class="value" style="color:#067647">${qty(data.totals.currentStockRemain)}</div></div>
+          <div class="card"><div class="label">Total Stock</div><div class="value" style="color:#067647">${qty(data.totals.totalStock)}</div></div>
+        </div>
+        ${negativeSection}
+        <div class="stock-tabs">${supplierTabs}</div>
+        <div class="stock-filters">
+          <select onchange="stockState.zipperType=this.value;stockState.page=1;updateStockTable()"><option value="">All Zipper Types</option>${opt(data.filters.zipperTypes)}</select>
+          <select onchange="stockState.reference=this.value;stockState.page=1;updateStockTable()"><option value="">All References</option>${opt(data.filters.references)}</select>
+          <input type="text" class="search-box" placeholder="Search item, length, color..." oninput="stockState.search=this.value;stockState.page=1;updateStockTable()">
+        </div>
+        <section class="owner-card">
+          <div class="table-heading">
+            <h2>All Stock Items</h2>
+            <div style="display:flex;gap:14px;align-items:center">
+              <div style="display:flex;gap:6px">
+                <button id="viewDetailBtn" class="stock-tab active" onclick="setStockView('detail')">By Variant</button>
+                <button id="viewSummaryBtn" class="stock-tab" onclick="setStockView('summary')">All Lengths (Most Used)</button>
+              </div>
+              <span class="mini-chip" id="stockCount"></span>
+            </div>
+          </div>
+          <div class="table-card">
+            <table class="cash-table">
+              <thead id="stockTableHead"></thead>
+              <tbody id="stockTableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="stockPagination"></div>
+        </section>`;
+
+      updateStockTable();
+    }
+
+    function setStockSupplier(supplier, button) {
+      stockState.supplier = supplier;
+      stockState.page = 1;
+      document.querySelectorAll('.stock-tab[data-supplier]').forEach(b => b.classList.remove('active'));
+      button.classList.add('active');
+      updateStockTable();
+    }
+
+    function setStockView(mode) {
+      stockState.viewMode = mode;
+      stockState.page = 1;
+      document.getElementById('viewDetailBtn').classList.toggle('active', mode === 'detail');
+      document.getElementById('viewSummaryBtn').classList.toggle('active', mode === 'summary');
+      updateStockTable();
+    }
+
+    function stockGoToPage(page) {
+      stockState.page = page;
+      updateStockTable();
+    }
+
+    function renderStockPagination(totalRows) {
+      const totalPages = Math.max(1, Math.ceil(totalRows / STOCK_PAGE_SIZE));
+      if (stockState.page > totalPages) stockState.page = totalPages;
+      const page = stockState.page;
+      document.getElementById('stockPagination').innerHTML = totalRows === 0 ? '' : `
+        <span>Page ${page} of ${totalPages} (${qty(totalRows)} rows)</span>
+        <button onclick="stockGoToPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>‹ Prev</button>
+        <button onclick="stockGoToPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>Next ›</button>`;
+    }
+
+    function updateStockTable() {
+      const s = stockState, term = s.search.toLowerCase();
+      const filtered = s.data.items.filter(i =>
+        (s.supplier === 'All' || i.supplier === s.supplier) &&
+        (!s.zipperType || i.zipperType === s.zipperType) &&
+        (!s.reference || i.reference === s.reference) &&
+        (!term || (i.item + i.length + i.color).toLowerCase().includes(term))
+      );
+
+      if (s.viewMode === 'summary') {
+        const groups = {};
+        filtered.forEach(i => {
+          if (!groups[i.item]) groups[i.item] = { item: i.item, stockAvail: 0, stockIn: 0, orderOut: 0 };
+          groups[i.item].stockAvail += i.stockAvail;
+          groups[i.item].stockIn += i.stockIn;
+          groups[i.item].orderOut += i.orderOut;
+        });
+        const rows = Object.values(groups).map(g => {
+          g.remainBefore = g.stockAvail - g.orderOut;
+          g.remainAfter = g.stockAvail + g.stockIn - g.orderOut;
+          g.negative = g.remainAfter < 0 || g.stockAvail < 0;
+          return g;
+        }).sort((a, b) => b.stockAvail - a.stockAvail);
+
+        document.getElementById('stockCount').textContent = rows.length + ' item(s)';
+        document.getElementById('stockTableHead').innerHTML = '<tr><th>Item Description</th><th>Stock Avail Qty</th><th>Stock In Not Delivered</th><th>Order Out Not Delivered</th><th>Remain Before ST Deliver</th><th>Remain After Deliveries</th></tr>';
+        const pageRows = rows.slice((s.page - 1) * STOCK_PAGE_SIZE, s.page * STOCK_PAGE_SIZE);
+        document.getElementById('stockTableBody').innerHTML = pageRows.map(g => `
+          <tr class="${g.negative ? 'negative-row' : ''}">
+            <td>${esc(g.item)}</td>
+            <td>${qty(g.stockAvail)}</td><td>${qty(g.stockIn)}</td><td>${qty(g.orderOut)}</td>
+            <td>${qty(g.remainBefore)}</td><td>${qty(g.remainAfter)}</td>
+          </tr>`).join('') || '<tr><td colspan="6">No stock records match your filters.</td></tr>';
+        renderStockPagination(rows.length);
+        return;
+      }
+
+      document.getElementById('stockTableHead').innerHTML = '<tr><th>Item Description</th><th>Length</th><th>Color</th><th>Supplier</th><th>Stock Avail Qty</th><th>Stock In Not Delivered</th><th>Order Out Not Delivered</th><th>Remain Before ST Deliver</th><th>Remain After Deliveries</th></tr>';
+      document.getElementById('stockCount').textContent = filtered.length + ' item(s)';
+      const pageRows = filtered.slice((s.page - 1) * STOCK_PAGE_SIZE, s.page * STOCK_PAGE_SIZE);
+      document.getElementById('stockTableBody').innerHTML = pageRows.map(i => `
+        <tr class="${i.negative ? 'negative-row' : ''}">
+          <td>${esc(i.item)}</td><td>${esc(i.length)}</td><td>${esc(i.color)}</td><td>${esc(i.supplier)}</td>
+          <td>${qty(i.stockAvail)}</td><td>${qty(i.stockIn)}</td><td>${qty(i.orderOut)}</td>
+          <td>${qty(i.remainBefore)}</td><td>${qty(i.remainAfter)}</td>
+        </tr>`).join('') || '<tr><td colspan="9">No stock records match your filters.</td></tr>';
+      renderStockPagination(filtered.length);
+    }
+
+    let managementState = { data: null, type: 'All', delivery: 'All', category: 'All', customer: '', supplier: '', reference: '', search: '', view: 'ledger' };
+
+    async function openManagement(forceRefresh = false) {
+      document.getElementById('sidebar').classList.remove('open');
+      markActive(null);
+      currentSheet = 'Database'; currentLabel = 'Management';
+      renderSkeleton();
+      try {
+        const data = await call('getManagementData', sessionId, forceRefresh);
+        renderManagement(data);
+      } catch (e) { handleError(e); }
+    }
+
+    function renderManagement(data) {
+      managementState = { data: data, type: 'All', delivery: 'All', category: 'All', customer: '', supplier: '', reference: '', search: '', view: 'ledger' };
+      const opt = list => list.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+
+      document.getElementById('main').innerHTML = `
+        <section class="owners-hero">
+          <div><h1>Management — Orders &amp; Stock Follow-up</h1><p>Track pending customer orders and stock movement in one place</p></div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="primary secondary" onclick="openManagement(true)">↻ Refresh</button>
+            <div class="owners-date">Last refreshed<br><strong>${new Date().toLocaleDateString()}</strong></div>
+          </div>
+        </section>
+        <div class="stats">
+          <div class="card"><div class="label">Total Qty (current filters)</div><div class="value" id="mgmtStatQty">${qty(data.totals.totalQty)}</div></div>
+          <div class="card"><div class="label">Total Value (current filters)</div><div class="value" id="mgmtStatPrice">${money(data.totals.totalPrice)}</div></div>
+          <div class="card"><div class="label" style="color:#b45409">Unpriced Items (current filters)</div><div class="value" id="mgmtStatUnpriced" style="color:#b45409">0</div></div>
+          <div class="card"><div class="label" style="color:#b45409">Pending Customer Orders <span style="font-weight:400">(overall)</span></div><div class="value" style="color:#b45409">${qty(data.totals.pendingCount)} <span style="font-size:14px;font-weight:400;color:var(--muted)">(${qty(data.totals.pendingQty)} units)</span></div></div>
+          <div class="card"><div class="label" style="color:#b45409">Pending Order Value <span style="font-weight:400">(overall)</span></div><div class="value" style="color:#b45409">${money(data.totals.pendingValue)}</div></div>
+        </div>
+        <div class="stock-tabs">
+          <button class="stock-tab active" id="mgmtTypeAll" onclick="setMgmt('type','All')">All Types</button>
+          <button class="stock-tab" id="mgmtTypeOrder" onclick="setMgmt('type','Order')">Orders Only</button>
+          <button class="stock-tab" id="mgmtTypeStock" onclick="setMgmt('type','Stock')">Stock Only</button>
+          <button class="stock-tab" id="mgmtPendingShortcut" onclick="setPendingView()">⚠ Pending Orders Only</button>
+        </div>
+        <div class="stock-tabs">
+          <button class="stock-tab active" id="mgmtDeliveryAll" onclick="setMgmt('delivery','All')">Delivered + Not Delivered</button>
+          <button class="stock-tab" id="mgmtDeliveryYes" onclick="setMgmt('delivery','Delivered')">Delivered</button>
+          <button class="stock-tab" id="mgmtDeliveryNo" onclick="setMgmt('delivery','Not Delivered')">Not Delivered</button>
+        </div>
+        <div class="stock-tabs">
+          <button class="stock-tab active" id="mgmtCatAll" onclick="setMgmt('category','All')">All Items</button>
+          <button class="stock-tab" id="mgmtCatMain" onclick="setMgmt('category','Main')">Main Items (Zipper)</button>
+          <button class="stock-tab" id="mgmtCatOther" onclick="setMgmt('category','Other')">Other Items</button>
+        </div>
+        <div class="stock-filters">
+          <select onchange="managementState.customer=this.value;updateManagementTable()"><option value="">All Customers</option>${opt(data.filters.customers)}</select>
+          <select onchange="managementState.supplier=this.value;updateManagementTable()"><option value="">All Suppliers</option>${opt(data.filters.suppliers)}</select>
+          <select onchange="managementState.reference=this.value;updateManagementTable()"><option value="">All References</option>${opt(data.filters.references)}</select>
+          <input type="text" class="search-box" placeholder="Search item, length, color..." oninput="managementState.search=this.value;updateManagementTable()">
+        </div>
+        <section class="owner-card">
+          <div class="table-heading"><h2 id="mgmtTableTitle">Transaction Ledger</h2><span class="mini-chip" id="mgmtCount"></span></div>
+          ${data.truncated ? `<p class="page-subtitle" style="margin-top:-6px">Showing the most recent 500 matching rows (of a larger total) for performance — narrow your filters for a complete view of a smaller slice.</p>` : ''}
+          <div class="table-card">
+            <table class="cash-table">
+              <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Customer</th><th>Supplier</th><th>Item Description</th><th>Length</th><th>Color</th><th>Qty</th><th>Unit Price</th><th>Total Price</th><th>Reference</th></tr></thead>
+              <tbody id="mgmtTableBody"></tbody>
+            </table>
+          </div>
+        </section>`;
+
+      updateManagementTable();
+      updateManagementStats();
+    }
+
+    function updateManagementStats() {
+      const s = managementState;
+      let qtySum = 0, priceSum = 0, unpricedSum = 0;
+      Object.keys(s.data.buckets || {}).forEach(key => {
+        const [bType, bDelivered, bCategory] = key.split('|');
+        const typeMatch = s.type === 'All' || bType === s.type.toLowerCase();
+        const deliveryMatch = s.delivery === 'All' || (s.delivery === 'Delivered' ? bDelivered === 'delivered' : bDelivered === 'pending');
+        const categoryMatch = s.category === 'All' || bCategory === s.category.toLowerCase();
+        if (typeMatch && deliveryMatch && categoryMatch) {
+          const b = s.data.buckets[key];
+          qtySum += b.qty; priceSum += b.totalPrice; unpricedSum += b.unpriced;
+        }
+      });
+      document.getElementById('mgmtStatQty').textContent = qty(qtySum);
+      document.getElementById('mgmtStatPrice').textContent = money(priceSum);
+      document.getElementById('mgmtStatUnpriced').textContent = qty(unpricedSum);
+    }
+
+    function setMgmt(field, value) {
+      managementState[field] = value;
+      managementState.view = 'ledger';
+      const groupPrefix = field === 'type' ? 'mgmtType' : field === 'delivery' ? 'mgmtDelivery' : 'mgmtCat';
+      document.querySelectorAll(`[id^="${groupPrefix}"]`).forEach(b => b.classList.remove('active'));
+      const idMap = { 'All': 'All', 'Order': 'Order', 'Stock': 'Stock', 'Delivered': 'Yes', 'Not Delivered': 'No', 'Main': 'Main', 'Other': 'Other' };
+      const target = document.getElementById(groupPrefix + (idMap[value] || value));
+      if (target) target.classList.add('active');
+      document.getElementById('mgmtPendingShortcut').classList.remove('active');
+      updateManagementTable();
+      updateManagementStats();
+    }
+
+    function setPendingView() {
+      managementState.view = 'pending';
+      document.querySelectorAll('.stock-tabs .stock-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('mgmtPendingShortcut').classList.add('active');
+      updateManagementTable();
+    }
+
+    function updateManagementTable() {
+      const s = managementState, term = s.search.toLowerCase();
+      const source = s.view === 'pending' ? s.data.pendingOrders : s.data.recentTransactions;
+      const rows = source.filter(r =>
+        (s.view === 'pending' || s.type === 'All' || r.type === s.type) &&
+        (s.view === 'pending' || s.delivery === 'All' || (s.delivery === 'Delivered' ? r.delivered : !r.delivered)) &&
+        (s.category === 'All' || (s.category === 'Main' ? r.isMain : !r.isMain)) &&
+        (!s.customer || r.customer === s.customer) &&
+        (!s.supplier || r.supplier === s.supplier) &&
+        (!s.reference || r.reference === s.reference) &&
+        (!term || (r.item + r.length + r.color).toLowerCase().includes(term))
+      );
+      document.getElementById('mgmtTableTitle').textContent = s.view === 'pending' ? 'Pending Customer Orders' : 'Transaction Ledger';
+      document.getElementById('mgmtCount').textContent = rows.length + ' row(s)';
+      document.getElementById('mgmtTableBody').innerHTML = rows.map(r => `
+        <tr class="${r.pending ? 'negative-row' : ''}">
+          <td>${esc(r.date)}</td><td>${esc(r.type)} ${esc(r.direction)}</td><td>${esc(r.status)}</td>
+          <td>${esc(r.customer || '-')}</td><td>${esc(r.supplier || '-')}</td>
+          <td>${esc(r.item)}</td><td>${esc(r.length)}</td><td>${esc(r.color)}</td>
+          <td>${qty(r.qty)}</td><td>${money(r.unitPrice)}</td><td>${money(r.totalPrice)}</td><td>${esc(r.reference || '-')}</td>
+        </tr>`).join('') || '<tr><td colspan="12">No records match your filters.</td></tr>';
+    }
+
+    function filterTable(input) {
+      const term = input.value.toLowerCase();
+      const table = input.closest('.owner-card').querySelector('tbody');
+      Array.from(table.getElementsByClassName('searchable')).forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    }
+
+    function renderSection(label, data) {
+      const headers = data.headers.map(h => `<th>${esc(h)}</th>`).join('');
+      const rows = data.rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="100">${esc(data.message || 'No records found.')}</td></tr>`;
+      document.getElementById('main').innerHTML = `
+        <div class="section-bar">
+          <div><h1 class="page-title">${esc(label)}</h1><p class="page-subtitle">View and manage records</p></div>
+          ${data.canAdd ? `<button class="primary" onclick="openEntryModal('section','${esc(data.sheetName)}','Add ${esc(label)} Record')">+ Add record</button>` : ''}
+        </div>
+        <div class="table-card"><table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
+
+    // mode: 'database' -> schema-driven Database form (blue headers + validation).
+    // mode: 'section'  -> plain form built from the current section's own headers.
+    async function openEntryModal(mode, sheetName, title) {
+      modalMode = mode;
+      modalSheet = sheetName;
+      document.getElementById('modalTitle').textContent = title || 'Add Record';
+      document.getElementById('formNotice').textContent = '';
+      document.getElementById('formFields').innerHTML = '<p>Loading fields...</p>';
+      document.getElementById('modalBackdrop').style.display = 'grid';
+
+      try {
+        if (mode === 'database') {
+          const schema = await call('getDatabaseEntrySchema', sessionId);
+          document.getElementById('formFields').innerHTML = schema.fields.map(f => `
+            <div>
+              <label>${esc(f.label)}</label>
+              ${f.options && f.options.length ?
+                `<select name="col_${f.column}" class="field"><option value="">-- Select --</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>` :
+                `<input name="col_${f.column}" class="field" placeholder="${esc(f.label)}">`}
+            </div>`).join('');
+        } else {
+          // section mode: one text field per existing header on that sheet.
+          document.getElementById('formFields').innerHTML = currentHeaders.map((label, index) => `
+            <div>
+              <label>${esc(label)}</label>
+              <input name="idx_${index}" class="field" placeholder="${esc(label)}">
+            </div>`).join('');
+        }
+      } catch (e) {
+        document.getElementById('formFields').innerHTML = `<p class="error">${esc(e)}</p>`;
+      }
+    }
+
+    function closeModal() { document.getElementById('modalBackdrop').style.display = 'none'; }
+
+    async function saveRecord(e) {
+      e.preventDefault();
+      const form = e.target;
+      const notice = document.getElementById('formNotice');
+      notice.textContent = 'Saving...';
+
+      try {
+        let res;
+        if (modalMode === 'database') {
+          const values = {};
+          Array.from(form.elements).forEach(el => {
+            if (el.name && el.name.startsWith('col_')) values[el.name.replace('col_', '')] = el.value;
+          });
+          res = await call('saveDatabaseEntry', sessionId, values);
+        } else {
+          const record = {};
+          Array.from(form.elements).forEach(el => {
+            if (el.name && el.name.startsWith('idx_')) record[el.name.replace('idx_', '')] = el.value;
+          });
+          res = await call('addSectionRow', sessionId, modalSheet, record);
+        }
+        notice.textContent = res.message;
+        setTimeout(() => {
+          closeModal();
+          if (modalMode === 'database') {
+            if (currentLabel === 'Stock') openStock(true);
+            else openOwners(true);
+          } else if (currentSheet) {
+            openSection(currentSheet, currentLabel);
+          }
+        }, 1200);
+      } catch (err) {
+        notice.textContent = err;
+      }
+    }
+
+    function handleError(e) {
+      document.getElementById('main').innerHTML = `<div class="message"><strong>Error:</strong> ${esc(e)}</div>`;
+    }
+  </script>
+</body>
+</html>
