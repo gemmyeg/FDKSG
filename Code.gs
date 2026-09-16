@@ -846,6 +846,105 @@ function api_getItemNames() {
   for (var r=1;r<data.length;r++){ if (data[r][idx]) names.push(data[r][idx]); }
   return names;
 }
+function api_getItems() {
+  var sh = ss_().getSheetByName('Items');
+  var data = sh.getDataRange().getValues();
+  var headers = data[0];
+  var rows = [];
+  for (var r = 1; r < data.length; r++) {
+    var obj = {};
+    headers.forEach(function(h, i){ obj[h] = data[r][i]; });
+    rows.push(obj);
+  }
+  return rows;
+}
+function api_addItem(data, user) {
+  var sh = ss_().getSheetByName('Items');
+  var headers = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  var name = (data['Item Name']||'').toString().trim();
+  if (!name) throw new Error('Item Name is required');
+  var existing = sh.getDataRange().getValues();
+  var iName = headers.indexOf('Item Name');
+  for (var r = 1; r < existing.length; r++) {
+    if (String(existing[r][iName]).trim().toLowerCase() === name.toLowerCase()) {
+      throw new Error('Item "' + name + '" already exists');
+    }
+  }
+  var row = headers.map(function(h){
+    if (h === 'Item ID') return name;
+    if (h === 'Item Name') return name;
+    return data[h] !== undefined ? data[h] : '';
+  });
+  sh.appendRow(row);
+  logAction_(user, 'Item Added', name);
+  return 'OK';
+}
+function api_updateItem(oldName, data, user) {
+  oldName = (oldName||'').toString().trim();
+  var newName = (data['Item Name']||'').toString().trim();
+  if (!newName) throw new Error('Item Name is required');
+  var ss = ss_();
+  var sh = ss.getSheetByName('Items');
+  var values = sh.getDataRange().getValues();
+  var headers = values[0];
+  var iName = headers.indexOf('Item Name');
+  var rowIdx = -1;
+  for (var r = 1; r < values.length; r++) {
+    if (String(values[r][iName]).trim() === oldName) { rowIdx = r; break; }
+  }
+  if (rowIdx === -1) throw new Error('Item not found: ' + oldName);
+  if (newName.toLowerCase() !== oldName.toLowerCase()) {
+    for (var r2 = 1; r2 < values.length; r2++) {
+      if (r2 !== rowIdx && String(values[r2][iName]).trim().toLowerCase() === newName.toLowerCase()) {
+        throw new Error('Another item is already named "' + newName + '"');
+      }
+    }
+  }
+  headers.forEach(function(h, i){
+    if (h === 'Item ID') { sh.getRange(rowIdx+1, i+1).setValue(newName); return; }
+    if (data[h] !== undefined) sh.getRange(rowIdx+1, i+1).setValue(data[h]);
+  });
+  if (newName !== oldName) {
+    cascadeItemRename_(ss, oldName, newName);
+  }
+  if (data['Item Type'] !== undefined) {
+    cascadeItemCategorySync_(ss, newName, data['Item Type']);
+  }
+  logAction_(user, 'Item Updated', oldName + (newName !== oldName ? (' -> ' + newName) : ''));
+  return 'OK';
+}
+function cascadeItemRename_(ss, oldName, newName) {
+  ['Products_Stock','Customer_Order_Items','Supplier_Order_Items'].forEach(function(sheetName){
+    var sh = ss.getSheetByName(sheetName);
+    if (!sh) return;
+    var values = sh.getDataRange().getValues();
+    var headers = values[0];
+    var iName = headers.indexOf('Item Name');
+    var iId = headers.indexOf('Item ID');
+    if (iName === -1) return;
+    for (var r = 1; r < values.length; r++) {
+      if (String(values[r][iName]).trim() === oldName) {
+        sh.getRange(r+1, iName+1).setValue(newName);
+        if (iId !== -1) sh.getRange(r+1, iId+1).setValue(newName);
+      }
+    }
+  });
+}
+function cascadeItemCategorySync_(ss, itemName, itemType) {
+  var sh = ss.getSheetByName('Products_Stock');
+  if (!sh) return;
+  var values = sh.getDataRange().getValues();
+  var headers = values[0];
+  var iName = headers.indexOf('Item Name');
+  var iCat = headers.indexOf('Category');
+  if (iName === -1 || iCat === -1) return;
+  for (var r = 1; r < values.length; r++) {
+    if (String(values[r][iName]).trim() === itemName && values[r][iCat] !== itemType) {
+      sh.getRange(r+1, iCat+1).setValue(itemType);
+    }
+  }
+}
+
 function api_getCustomerNames() {
   var sh = ss_().getSheetByName('Customers');
   var data = sh.getDataRange().getValues();
@@ -1341,12 +1440,21 @@ function api_getOwners() {
     assetEGP[key] = (assetEGP[key]||0) + toNum_(a['Value EGP']);
     assetUSD[key] = (assetUSD[key]||0) + toNum_(a['Value USD']);
   });
+  var cheques = sheetToObjects_('Cheques');
+  var chequesInHandEGP = {};
+  cheques.forEach(function(ch){
+    var key = String(ch['Owner']||'').trim();
+    if (!key) return;
+    if (String(ch['Status']||'').trim() !== 'In Hand') return;
+    chequesInHandEGP[key] = (chequesInHandEGP[key]||0) + toNum_(ch['Amount EGP']);
+  });
   rows.forEach(function(r){
     var key = String(r['Owner Name']||'').trim();
     r['Capital Contributed EGP'] = contribEGP[key] || 0;
     r['Capital Contributed USD'] = contribUSD[key] || 0;
     r['Assets Value EGP'] = assetEGP[key] || 0;
     r['Assets Value USD'] = assetUSD[key] || 0;
+    r['Cheques In Hand EGP'] = chequesInHandEGP[key] || 0;
   });
   return rows;
 }
