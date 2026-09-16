@@ -273,6 +273,7 @@
     <div class="nav-item" data-page="orders"><span class="nav-icon">📦</span> Orders</div>
     <div class="nav-item" data-page="payments"><span class="nav-icon">💵</span> Payments</div>
     <div class="nav-item" data-page="stock"><span class="nav-icon">🧵</span> Stock</div>
+    <div class="nav-item" data-page="items"><span class="nav-icon">🏷️</span> Items</div>
     <div class="nav-item" data-page="owners"><span class="nav-icon">🏦</span> Owners</div>
     <div class="nav-item admin-only" data-page="users"><span class="nav-icon">🔑</span> Users</div>
     <div class="nav-item admin-only" data-page="logs"><span class="nav-icon">📝</span> Activity Log</div>
@@ -337,6 +338,14 @@
         <label><input type="checkbox" id="stock-low-only" onchange="renderStockTable()"> Low stock only</label>
       </div>
       <div id="stock-content"><div class="loading">Loading...</div></div>
+    </div>
+
+    <div class="page" id="page-items">
+      <div class="page-header"><h2>Items</h2><button class="btn btn-amber" onclick="openItemForm()">+ New Item</button></div>
+      <div class="stock-filters">
+        <input id="items-search" placeholder="Search item name, type or Arabic name..." oninput="renderItemsTable()">
+      </div>
+      <div id="items-content"><div class="loading">Loading...</div></div>
     </div>
 
     <div class="page" id="page-owners">
@@ -420,6 +429,7 @@ var stockDataCache = null;
 var stockFilteredCache = [];
 var customersRowsCache = [];
 var suppliersRowsCache = [];
+var itemsRowsCache = null;
 var customerPaymentsCacheChart = null;
 var supplierPaymentsCacheChart = null;
 
@@ -495,6 +505,81 @@ function showToast(msg){
   t._hideTimer = setTimeout(function(){ t.classList.remove('show'); }, 4500);
 }
 
+function loadItems(){
+  document.getElementById('items-content').innerHTML = '<div class="loading">Loading...</div>';
+  google.script.run.withSuccessHandler(function(rows){
+    itemsRowsCache = rows;
+    renderItemsTable();
+  }).withFailureHandler(function(err){ document.getElementById('items-content').innerHTML = '<div class="empty">Error: ' + err.message + '</div>'; }).api_getItems();
+}
+function renderItemsTable(){
+  if (!itemsRowsCache) return;
+  var q = (document.getElementById('items-search') ? document.getElementById('items-search').value : '').trim().toLowerCase();
+  var rows = itemsRowsCache.filter(function(it){
+    if (!q) return true;
+    return String(it['Item Name']||'').toLowerCase().indexOf(q) !== -1 ||
+           String(it['Item Type']||'').toLowerCase().indexOf(q) !== -1 ||
+           String(it['Arabic Name']||'').toLowerCase().indexOf(q) !== -1;
+  });
+  if (!rows.length) { document.getElementById('items-content').innerHTML = '<div class="empty">No items found</div>'; return; }
+  var html = '<table><tr><th>Item Name</th><th>Type</th><th>Unit</th><th>YKK Code</th><th>YKK Description</th><th>Arabic Name</th><th>Notes</th><th></th></tr>';
+  rows.forEach(function(it){
+    html += '<tr><td>' + escAttr_(it['Item Name']) + '</td><td>' + escAttr_(it['Item Type']) + '</td><td>' + escAttr_(it['Unit']) + '</td><td>' + escAttr_(it['YKK Item Code']) + '</td><td>' + escAttr_(it['YKK Description']) + '</td><td>' + escAttr_(it['Arabic Name']) + '</td><td>' + escAttr_(it['Notes']) + '</td>' +
+      '<td><button class="btn btn-ghost btn-sm" onclick="openItemEditForm(\'' + escAttr_(it['Item Name']).replace(/'/g,"\\'") + '\')">Edit</button></td></tr>';
+  });
+  html += '</table>';
+  document.getElementById('items-content').innerHTML = html;
+}
+function openItemForm(){
+  openModal('<h3>New Item</h3>' +
+    '<div class="field"><label>Item Name</label><input id="f-item-name"></div>' +
+    '<div class="row2"><div class="field"><label>Item Type</label><input id="f-item-type"></div>' +
+    '<div class="field"><label>Unit</label><input id="f-item-unit"></div></div>' +
+    '<div class="row2"><div class="field"><label>YKK Item Code</label><input id="f-item-ykkcode"></div>' +
+    '<div class="field"><label>YKK Description</label><input id="f-item-ykkdesc"></div></div>' +
+    '<div class="field"><label>Arabic Name</label><input id="f-item-arname" dir="rtl"></div>' +
+    '<div class="field"><label>Notes</label><textarea id="f-item-notes" rows="2"></textarea></div>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="submitItem()">Save</button></div>');
+}
+function readItemForm_(prefix){
+  return {
+    'Item Name': document.getElementById(prefix + 'item-name').value.trim(),
+    'Item Type': document.getElementById(prefix + 'item-type').value,
+    'Unit': document.getElementById(prefix + 'item-unit').value,
+    'YKK Item Code': document.getElementById(prefix + 'item-ykkcode').value,
+    'YKK Description': document.getElementById(prefix + 'item-ykkdesc').value,
+    'Arabic Name': document.getElementById(prefix + 'item-arname').value,
+    'Notes': document.getElementById(prefix + 'item-notes').value
+  };
+}
+function submitItem(){
+  var data = readItemForm_('f-');
+  if (!data['Item Name']) { showToast('Item Name is required'); return; }
+  google.script.run.withSuccessHandler(function(){
+    closeModal(); showToast('Item added'); loadItems(); itemNamesCache = null;
+  }).withFailureHandler(function(err){ showToast('Error: ' + err.message); }).api_addItem(data, currentUser.username);
+}
+function openItemEditForm(itemName){
+  var it = itemsRowsCache.find(function(x){ return String(x['Item Name']) === itemName; });
+  if (!it) return;
+  openModal('<h3>Edit — ' + escAttr_(itemName) + '</h3>' +
+    '<div class="field"><label>Item Name</label><input id="fe-item-name" value="' + escAttr_(it['Item Name']) + '"></div>' +
+    '<div class="row2"><div class="field"><label>Item Type</label><input id="fe-item-type" value="' + escAttr_(it['Item Type']) + '"></div>' +
+    '<div class="field"><label>Unit</label><input id="fe-item-unit" value="' + escAttr_(it['Unit']) + '"></div></div>' +
+    '<div class="row2"><div class="field"><label>YKK Item Code</label><input id="fe-item-ykkcode" value="' + escAttr_(it['YKK Item Code']) + '"></div>' +
+    '<div class="field"><label>YKK Description</label><input id="fe-item-ykkdesc" value="' + escAttr_(it['YKK Description']) + '"></div></div>' +
+    '<div class="field"><label>Arabic Name</label><input id="fe-item-arname" dir="rtl" value="' + escAttr_(it['Arabic Name']) + '"></div>' +
+    '<div class="field"><label>Notes</label><textarea id="fe-item-notes" rows="2">' + escAttr_(it['Notes']) + '</textarea></div>' +
+    '<div class="field" style="font-size:12px;color:var(--ink-soft);">Renaming this item will update it everywhere it is used — in stock and in past orders.</div>' +
+    '<div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveItemEdit(\'' + itemName.replace(/'/g,"\\'") + '\')">Save</button></div>');
+}
+function saveItemEdit(oldName){
+  var data = readItemForm_('fe-');
+  if (!data['Item Name']) { showToast('Item Name is required'); return; }
+  google.script.run.withSuccessHandler(function(){
+    closeModal(); showToast('Item updated'); loadItems(); itemNamesCache = null;
+  }).withFailureHandler(function(err){ showToast('Error: ' + err.message); }).api_updateItem(oldName, data, currentUser.username);
+}
 function navigate(page){
   document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.toggle('active', el.dataset.page === page); });
   document.querySelectorAll('.page').forEach(function(el){ el.classList.toggle('active', el.id === 'page-' + page); });
@@ -504,6 +589,7 @@ function navigate(page){
   if (page === 'orders') loadOrders();
   if (page === 'payments') loadPayments();
   if (page === 'stock') loadStock();
+  if (page === 'items') loadItems();
   if (page === 'owners') loadOwnersPage();
   if (page === 'users') loadUsers();
   if (page === 'logs') loadLogs();
@@ -606,12 +692,11 @@ function renderOwnersSummary(){
 }
 function renderOwnersTable(){
   if (!ownersRowsCache.length) { document.getElementById('owners-content').innerHTML = '<div class="empty">No owners recorded yet</div>'; return; }
-  var html = '<table><tr><th>Owner</th><th class="num">Opening Cash EGP</th><th class="num">Opening Cash USD</th><th class="num">Capital Contributed EGP</th><th class="num">Capital Contributed USD</th><th class="num">Assets Value EGP</th><th class="num">Assets Value USD</th></tr>';
+  var html = '<table><tr><th>Owner</th><th class="num">Opening Cash EGP</th><th class="num">Opening Cash USD</th><th class="num">Cheques In Hand EGP</th></tr>';
   ownersRowsCache.forEach(function(o){
     html += '<tr><td>' + escAttr_(o['Owner Name']||'') + '</td>' +
       '<td class="num">' + fmtEGP_(o['Opening Balance EGP']) + '</td><td class="num">' + fmtUSD_(o['Opening Balance USD']) + '</td>' +
-      '<td class="num">' + fmtEGP_(o['Capital Contributed EGP']) + '</td><td class="num">' + fmtUSD_(o['Capital Contributed USD']) + '</td>' +
-      '<td class="num">' + fmtEGP_(o['Assets Value EGP']) + '</td><td class="num">' + fmtUSD_(o['Assets Value USD']) + '</td></tr>';
+      '<td class="num">' + fmtEGP_(o['Cheques In Hand EGP']) + '</td></tr>';
   });
   html += '</table>';
   document.getElementById('owners-content').innerHTML = html;
